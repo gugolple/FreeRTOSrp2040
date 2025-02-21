@@ -34,6 +34,6 @@ I will list all the tools used/planned to be used
 
 # References
 
-Based on [FreeRTOS LTS](https://github.com/FreeRTOS/FreeRTOS-LTS) release [202406.1TLS](https://github.com/FreeRTOS/FreeRTOS-LTS/releases/tag/202406.01-LTS) path: "FreeRTOS/FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040"
+Based on [CORTEX_M0+\_RP2040](https://github.com/FreeRTOS/FreeRTOS-SMP-Demos/tree/main/FreeRTOS/Demo/CORTEX_M0%2B_RP2040)
 
 Original [README](OG_README.md)
