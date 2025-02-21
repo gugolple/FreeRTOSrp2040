@@ -24,15 +24,15 @@ build:
 	cmake -S . -B ${BUILD_DIR}
 
 compile: build
-	cmake --build ${BUILD_DIR}
+	cmake --build ${BUILD_DIR} -j$(shell nproc)
 
-container-build:
+container-build: container
 	${PODMAN_RUN} make build
 
-container-compile:
+container-compile: container
 	${PODMAN_RUN} make compile
 
-container-it:
+container-it: container
 	${PODMAN_BASE} -it ${VER_POD_IMAGE}
 
 clean-container:
