@@ -17,3 +17,5 @@ The idea of the operation is to learn the microcontroller and not to produce a q
 # References
 
 Based on [FreeRTOS LTS](https://github.com/FreeRTOS/FreeRTOS-LTS) release [202406.1TLS](https://github.com/FreeRTOS/FreeRTOS-LTS/releases/tag/202406.01-LTS) path: "FreeRTOS/FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040"
+
+Original [README](OG_README.md)
