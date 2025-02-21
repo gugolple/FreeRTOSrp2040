@@ -9,8 +9,8 @@ LDIR=$(shell pwd)
 
 # Podman arguments shared
 export PODMAN_ARGS = --rm -v ${LDIR}/:/mnt
-PODMAN_BASE = podman run ${PODMAN_ARGS}
-PODMAN_RUN = ${PODMAN_BASE} -t ${VER_POD_IMAGE}
+PODMAN_RUN = podman run ${PODMAN_ARGS}
+PODMAN_CONTAINER_RUN = ${PODMAN_RUN} -t ${VER_POD_IMAGE}
 
 # RP SDK Configs
 export PICO_PLATFORM
@@ -27,13 +27,13 @@ compile: build
 	cmake --build ${BUILD_DIR} -j$(shell nproc)
 
 container-build: container
-	${PODMAN_RUN} make build
+	${PODMAN_CONTAINER_RUN} make build
 
 container-compile: container
-	${PODMAN_RUN} make compile
+	${PODMAN_CONTAINER_RUN} make compile
 
 container-it: container
-	${PODMAN_BASE} -it ${VER_POD_IMAGE}
+	${PODMAN_RUN} -it ${VER_POD_IMAGE}
 
 clean-container:
 	cd ${CONTAINER_DIR} ; make clean
