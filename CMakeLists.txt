@@ -4,6 +4,8 @@
 cmake_minimum_required(VERSION 3.13)
 
 set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/FreeRTOS-Kernel)
+set(PATH_PIO_SDK_CMAKE ${CMAKE_SOURCE_DIR}/pico_sdk_import.cmake)
+set(PATH_FREERTOS_CMAKE ${CMAKE_SOURCE_DIR}/FreeRTOS_Kernel_import.cmake)
 
 # Pull in SDK (must be before project)
 include(pico_sdk_import.cmake)

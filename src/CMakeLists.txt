@@ -1,10 +1,8 @@
-cmake_minimum_required(VERSION 3.13)
-
 # Pull in SDK (must be before project)
-include(${CMAKE_SOURCE_DIR}/pico_sdk_import.cmake)
+include(${PATH_PIO_SDK_CMAKE})
 
 # Pull in FreeRTOS
-include(${CMAKE_SOURCE_DIR}/FreeRTOS_Kernel_import.cmake)
+include(${PATH_FREERTOS_CMAKE})
 
 project(example C CXX ASM)
 set(CMAKE_C_STANDARD 11)
@@ -29,7 +27,6 @@ target_compile_options( main_blinky PUBLIC
         ### Gnu/Clang C Options
         $<$<COMPILE_LANG_AND_ID:C,GNU>:-fdiagnostics-color=always>
         $<$<COMPILE_LANG_AND_ID:C,Clang>:-fcolor-diagnostics>
-
         $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wall>
         $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
         $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
