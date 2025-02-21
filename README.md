@@ -35,5 +35,3 @@ I will list all the tools used/planned to be used
 # References
 
 Based on [CORTEX_M0+\_RP2040](https://github.com/FreeRTOS/FreeRTOS-SMP-Demos/tree/main/FreeRTOS/Demo/CORTEX_M0%2B_RP2040)
-
-Original [README](OG_README.md)
