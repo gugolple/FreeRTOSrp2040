@@ -13,6 +13,7 @@ pico_sdk_init()
 add_executable(main_blinky
         main.c
         common.c
+        hd44780.c
 )
 
 target_compile_definitions(main_blinky PRIVATE

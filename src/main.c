@@ -61,6 +61,11 @@
  * the LED every 200 milliseconds.
  */
 
+/* Extra tasks. */
+#ifndef HD44780_H
+#include "hd44780.h"
+#endif
+
 /* Kernel includes. */
 #include "FreeRTOS.h"
 #include "task.h"
@@ -71,8 +76,9 @@
 #include "hardware/gpio.h"
 
 /* Priorities at which the tasks are created. */
-#define mainQUEUE_RECEIVE_TASK_PRIORITY        ( tskIDLE_PRIORITY + 2 )
-#define    mainQUEUE_SEND_TASK_PRIORITY        ( tskIDLE_PRIORITY + 1 )
+#define mainQUEUE_RECEIVE_TASK_PRIORITY        ( tskIDLE_PRIORITY + 3 )
+#define    mainQUEUE_SEND_TASK_PRIORITY        ( tskIDLE_PRIORITY + 2 )
+#define               LCD_TASK_PRIORITY        ( tskIDLE_PRIORITY + 4 )
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
 to ticks using the portTICK_PERIOD_MS constant. */
@@ -114,6 +120,7 @@ int main_blinky( void )
     /* Create the queue. */
     xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
 
+    xTaskCreate( hd44780Task, "HD", configMINIMAL_STACK_SIZE, NULL, LCD_TASK_PRIORITY, NULL );
     if( xQueue != NULL )
     {
         /* Start the two tasks as described in the comments at the top of this
