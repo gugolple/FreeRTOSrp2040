@@ -32,6 +32,9 @@ container-build: container
 container-compile: container
 	${PODMAN_CONTAINER_RUN} make compile
 
+container-clean: container
+	${PODMAN_CONTAINER_RUN} make clean
+
 container-it: container
 	${PODMAN_RUN} -it ${VER_POD_IMAGE}
 

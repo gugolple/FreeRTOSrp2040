@@ -78,7 +78,7 @@
 /* Priorities at which the tasks are created. */
 #define mainQUEUE_RECEIVE_TASK_PRIORITY        ( tskIDLE_PRIORITY + 3 )
 #define    mainQUEUE_SEND_TASK_PRIORITY        ( tskIDLE_PRIORITY + 2 )
-#define               LCD_TASK_PRIORITY        ( tskIDLE_PRIORITY + 4 )
+#define               LCD_TASK_PRIORITY        ( tskIDLE_PRIORITY + 1 )
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
 to ticks using the portTICK_PERIOD_MS constant. */
