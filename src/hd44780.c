@@ -26,7 +26,7 @@
 #define MIN_HD44780_PERIOD_US         1000000/MAX_HD44780_FREQ
 #define hd44780_POWERON_DELAY_MS      ( 100 / portTICK_PERIOD_MS )
 #define hd44780_INST_CLEAR_DISPLAY_MS ( 10 / portTICK_PERIOD_MS )
-#define hd44780_INST_DELAY_US         100
+#define hd44780_INST_DELAY_US         40
 
 #define HD44780_START_ADD_L1          (0x00) 
 #define HD44780_START_ADD_L2          (0x40)
