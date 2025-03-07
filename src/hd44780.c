@@ -28,10 +28,16 @@
 #define hd44780_INST_CLEAR_DISPLAY_MS ( 10 / portTICK_PERIOD_MS )
 #define hd44780_INST_DELAY_US         100
 
-#define HD44780_START_ADD_L1          0x00 
-#define HD44780_START_ADD_L2          0x40
-#define HD44780_START_ADD_L3          0x10 
-#define HD44780_START_ADD_L4          0x50
+#define HD44780_START_ADD_L1          (0x00) 
+#define HD44780_START_ADD_L2          (0x40)
+#define HD44780_START_ADD_L3          (0x10) 
+#define HD44780_START_ADD_L4          (0x50)
+const int HD44780_LINE_START_LOC[] = {
+    HD44780_START_ADD_L1,
+    HD44780_START_ADD_L2,
+    HD44780_START_ADD_L3,
+    HD44780_START_ADD_L4
+};
 
 // Pins assigned for the HD44780 interface
 const int HD44780_PINS_DATA[] = {1,2,3,4,5,6,7,8};
@@ -40,6 +46,16 @@ const int HD44780_PINS_RS   = 10;
 const int HD44780_PINS_E    = 11;
 const int HD44780_PINS_DBG  = 12;
 const int HD44780_PIN_COUNT = ARRAY_SIZE(HD44780_PINS_DATA);
+
+#define NROW 4
+#define ROWLEN 17
+#define ROWLENCP (ROWLEN-1)
+char hd44780_display_data[NROW][ROWLEN] = {
+    "",
+    "",
+    "",
+    "",
+};
 
 int valPos(int pos, int vals) {
     // Force to be 1 or 0
@@ -280,11 +296,39 @@ void blink_dbg() {
     blk = !blk;
 }
 
+int check_line_not_reachable(int const l) {
+    if(l < 0 || l > NROW) { return 1; }
+    return 0;
+}
+
 void write_string(char const * const rstr) {
     char const * str = rstr;
     while(*str != '\0') {
         hd44780_send_data(*str);
         str++;
+    }
+}
+
+void set_line(int line, char* str) {
+    // Verify reachable line
+    if(check_line_not_reachable(line)) { return; }
+    char* ddl = hd44780_display_data[line];
+    // Only copy allowed range of data
+    int i;
+    for(i=0 ; i<ROWLENCP && str[i] != '\0' ; i++) {
+        ddl[i] = str[i];
+    }
+    // ddl[i] will always be in range due to checks in
+    // the for loop
+    ddl[i] = '\0';
+}
+
+void display_line(int line) {
+    if(check_line_not_reachable(line)) { return; }
+    hd44780_inst_set_ddram_address(HD44780_LINE_START_LOC[line]);
+    char* ddl = hd44780_display_data[line];
+    for(int i=0 ; i<ROWLENCP && ddl[i] != '\0' ; i++) {
+        hd44780_send_data(ddl[i]);
     }
 }
 
@@ -308,30 +352,20 @@ void hd44780Task( void *pvParameters )
     // Realize the reset sequence to initialize the HD44780
     reset_sequence(&xNextWakeTime);
 
-    // Test display
-    write_string("Potato!");
+    set_line(0, "L1 Me gusta");
+    display_line(0);
+    set_line(1, "L2 Funciona?");
+    display_line(1);
+    set_line(2, "L3 No me lo creo");
+    display_line(2);
+    set_line(3, "L4 A la primera?");
+    display_line(3);
 
-    int cnt = 0;
-    const char str[10][2] = {
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-    };
+    // Test display
     for( ;; )
     {
-        write_string(str[cnt++]);
         blink_dbg();
         vTaskDelayUntil( &xNextWakeTime, hd44780_CHECK_FREQUENCY_MS );
-        if(cnt >= 10) { 
-            cnt = 0;
-        }
     }
 }
 /*-----------------------------------------------------------*/
