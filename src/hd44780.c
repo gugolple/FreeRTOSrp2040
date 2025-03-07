@@ -28,8 +28,10 @@
 #define hd44780_INST_CLEAR_DISPLAY_MS ( 10 / portTICK_PERIOD_MS )
 #define hd44780_INST_DELAY_US         100
 
-#define HD44780_START_ADD_L1          27
-#define HD44780_START_ADD_L2          67
+#define HD44780_START_ADD_L1          0x00 
+#define HD44780_START_ADD_L2          0x40
+#define HD44780_START_ADD_L3          0x10 
+#define HD44780_START_ADD_L4          0x50
 
 // Pins assigned for the HD44780 interface
 const int HD44780_PINS_DATA[] = {1,2,3,4,5,6,7,8};
@@ -266,6 +268,9 @@ void reset_sequence(TickType_t *xNextWakeTime) {
     hd44780_inst_display_clear(xNextWakeTime);
     hd44780_inst_display_control(1, 1, 0);
     hd44780_inst_entry_mode_set(1,0);
+
+    // Set start point
+    hd44780_inst_set_ddram_address(HD44780_START_ADD_L4);
 }
 
 // This only exists to confirm that the loop is never stuck
