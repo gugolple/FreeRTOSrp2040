@@ -362,10 +362,15 @@ void hd44780Task( void *pvParameters )
     display_line(3);
 
     // Test display
+    int cnt = 0;
+    char buf[ROWLEN] = "";
     for( ;; )
     {
         blink_dbg();
-        vTaskDelayUntil( &xNextWakeTime, hd44780_CHECK_FREQUENCY_MS );
+        snprintf(buf, sizeof(buf), "%d", cnt++);
+        set_line(3, buf);
+        display_line(3);
+        //vTaskDelayUntil( &xNextWakeTime, hd44780_CHECK_FREQUENCY_MS );
     }
 }
 /*-----------------------------------------------------------*/
