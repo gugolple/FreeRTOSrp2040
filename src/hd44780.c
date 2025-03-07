@@ -15,18 +15,43 @@
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
 // Hardware configuration of unit
-#define HD44780_CONFIG_DL_DATA_LENGTH   1 //0 - 4 | 1 - 8 //Bits for comm
+#define HD44780_CONFIG_DL_DATA_LENGTH   0 //0 - 4 | 1 - 8 //Bits for comm
 #define HD44780_CONFIG_N_DISPLAY_LINES  1 //0 - 1 | 1 - 2
 #define HD44780_CONFIG_F_CHARACTER_FONT 0 
 #define HD44780_CONFIG_C_CURSOR         0 // Cursor visible
 #define HD44780_CONFIG_B_CURSOR_BLINK   0 // Cursor blinking
 
+// Macro definition checks
+// HD44780_CONFIG_N_DISPLAY_LINES
+#if HD44780_CONFIG_N_DISPLAY_LINES != 0 && HD44780_CONFIG_N_DISPLAY_LINES != 1
+#error
+#error INVALID HD44780_CONFIG_N_DISPLAY_LINES MUST BE EITHER 0 or 1
+#endif
+
+// HD44780_CONFIG_F_CHARACTER_FONT
+#if HD44780_CONFIG_F_CHARACTER_FONT != 0 && HD44780_CONFIG_F_CHARACTER_FONT != 1
+#error
+#error INVALID HD44780_CONFIG_F_CHARACTER_FONT MUST BE EITHER 0 or 1
+#endif
+
+// HD44780_CONFIG_C_CURSOR
+#if HD44780_CONFIG_C_CURSOR != 0 && HD44780_CONFIG_C_CURSOR != 1
+#error
+#error INVALID HD44780_CONFIG_C_CURSOR MUST BE EITHER 0 or 1
+#endif
+
+// HD44780_CONFIG_B_CURSOR_BLINK
+#if HD44780_CONFIG_B_CURSOR_BLINK != 0 && HD44780_CONFIG_B_CURSOR_BLINK != 1
+#error
+#error INVALID HD44780_CONFIG_B_CURSOR_BLINK MUST BE EITHER 0 or 1
+#endif
+
 // Hardware restrictions of official spec
-#define MAX_HD44780_FREQ              250000 //Herth
-#define MIN_HD44780_PERIOD_US         1000000/MAX_HD44780_FREQ
+#define MAX_HD44780_FREQ              ( 250000 ) //Herth
+#define MIN_HD44780_PERIOD_US         ( 1000000/MAX_HD44780_FREQ )
 #define hd44780_POWERON_DELAY_MS      ( 100 / portTICK_PERIOD_MS )
 #define hd44780_INST_CLEAR_DISPLAY_MS ( 10 / portTICK_PERIOD_MS )
-#define hd44780_INST_DELAY_US         40
+#define hd44780_INST_DELAY_US         80
 
 #define HD44780_START_ADD_L1          (0x00) 
 #define HD44780_START_ADD_L2          (0x40)
@@ -40,12 +65,21 @@ const int HD44780_LINE_START_LOC[] = {
 };
 
 // Pins assigned for the HD44780 interface
-const int HD44780_PINS_DATA[] = {1,2,3,4,5,6,7,8};
+// Only 4 high used if set to 4 bit mode at HD44780_MODE
+#if HD44780_CONFIG_DL_DATA_LENGTH == 1
+#define HD44780_MODE 8
+const int HD44780_PINS_DATA[HD44780_MODE] = {1,2,3,4,5,6,7,8};
+#elif HD44780_CONFIG_DL_DATA_LENGTH == 0
+#define HD44780_MODE 4
+const int HD44780_PINS_DATA[HD44780_MODE] = {5,6,7,8};
+#else
+#error INVALID HD44780_CONFIG_DL_DATA_LENGTH MUST BE EITHER 0 or 1
+#endif
 const int HD44780_PINS_RW   = 9;
 const int HD44780_PINS_RS   = 10;
 const int HD44780_PINS_E    = 11;
 const int HD44780_PINS_DBG  = 12;
-const int HD44780_PIN_COUNT = ARRAY_SIZE(HD44780_PINS_DATA);
+const int HD44780_PIN_COUNT = HD44780_MODE;
 
 #define NROW 4
 #define ROWLEN 17
@@ -56,6 +90,14 @@ char hd44780_display_data[NROW][ROWLEN] = {
     "",
     "",
 };
+
+int get_high_4bits(const int v) {
+    return (v & 0xF0) >> 4;
+}
+
+int get_low_4bits(const int v) {
+    return v & 0x0F;
+}
 
 int valPos(int pos, int vals) {
     // Force to be 1 or 0
@@ -92,8 +134,7 @@ void hd44780_inst_set_data_pins(const int v) {
     }
 }
 
-void hd44780_send_instruction(const int v) {
-    gpio_put( HD44780_PINS_RS, 0 );
+void hd44780_send_data(const int v) {
     gpio_put( HD44780_PINS_E, 1 );
     hd44780_inst_set_data_pins(v);
     busy_wait_us(hd44780_INST_DELAY_US);
@@ -101,13 +142,23 @@ void hd44780_send_instruction(const int v) {
     busy_wait_us(hd44780_INST_DELAY_US);
 }
 
-void hd44780_send_data(const int v) {
+void hd44780_send_payload(const int v) {
+#if HD44780_CONFIG_DL_DATA_LENGTH == 1
+    hd44780_send_data(v);
+#elif HD44780_CONFIG_DL_DATA_LENGTH == 0
+    hd44780_send_data(get_high_4bits(v));
+    hd44780_send_data(get_low_4bits(v));
+#endif
+}
+
+void hd44780_send_instruction(const int v) {
+    gpio_put( HD44780_PINS_RS, 0 );
+    hd44780_send_payload(v);
+}
+
+void hd44780_send_data_payload(const int v) {
     gpio_put( HD44780_PINS_RS, 1 );
-    gpio_put( HD44780_PINS_E, 1 );
-    hd44780_inst_set_data_pins(v);
-    busy_wait_us(hd44780_INST_DELAY_US);
-    gpio_put( HD44780_PINS_E, 0 );
-    busy_wait_us(hd44780_INST_DELAY_US);
+    hd44780_send_payload(v);
 }
 
 void hd44780_inst_display_clear(TickType_t *xNextWakeTime) {
@@ -201,6 +252,27 @@ void hd44780_inst_cursor_display_shift(const int sc, const int rl) {
     hd44780_send_instruction(val);
 }
 
+// This specific call is to transition from 8 bit to 4 bit mode
+void hd44780_inst_function_set_half() {
+    // Per instructions:
+    // - DB7: 0
+    // - DB6: 0
+    // - DB5: 1
+    // - DB4: DL
+    // - DB3: N
+    // - DB2: F
+    // - DB1: Ignored
+    // - DB0: Ignored
+    
+    // Start with the instruction value
+    const int val = 0x20 |
+        HD44780_CONFIG_DL_DATA_LENGTH << 4 | 
+        HD44780_CONFIG_N_DISPLAY_LINES << 3 |
+        HD44780_CONFIG_F_CHARACTER_FONT << 2
+    ;
+    hd44780_send_data(get_high_4bits(val));
+}
+
 void hd44780_inst_function_set() {
     // Per instructions:
     // - DB7: 0
@@ -280,7 +352,12 @@ void reset_sequence(TickType_t *xNextWakeTime) {
     // Fully wait until initialization is compleated
     vTaskDelayUntil( xNextWakeTime, hd44780_POWERON_DELAY_MS );
     // Instruction to archieve the correct initialization
+#if HD44780_CONFIG_DL_DATA_LENGTH == 0
+    hd44780_inst_function_set_half();
+    vTaskDelayUntil( xNextWakeTime, hd44780_INST_CLEAR_DISPLAY_MS );
+#endif
     hd44780_inst_function_set();
+    vTaskDelayUntil( xNextWakeTime, hd44780_INST_CLEAR_DISPLAY_MS );
     hd44780_inst_display_clear(xNextWakeTime);
     hd44780_inst_display_control(1, 1, 0);
     hd44780_inst_entry_mode_set(1,0);
@@ -303,9 +380,8 @@ int check_line_not_reachable(int const l) {
 
 void write_string(char const * const rstr) {
     char const * str = rstr;
-    while(*str != '\0') {
-        hd44780_send_data(*str);
-        str++;
+    for(int i=0 ; i<ROWLENCP && str[i] != '\0' ; i++) {
+        hd44780_send_data_payload(str[i]);
     }
 }
 
@@ -326,10 +402,7 @@ void set_line(int line, char* str) {
 void display_line(int line) {
     if(check_line_not_reachable(line)) { return; }
     hd44780_inst_set_ddram_address(HD44780_LINE_START_LOC[line]);
-    char* ddl = hd44780_display_data[line];
-    for(int i=0 ; i<ROWLENCP && ddl[i] != '\0' ; i++) {
-        hd44780_send_data(ddl[i]);
-    }
+    write_string(hd44780_display_data[line]);
 }
 
 /*-----------------------------------------------------------*/
