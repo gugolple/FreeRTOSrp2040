@@ -264,20 +264,8 @@ void reset_sequence(TickType_t *xNextWakeTime) {
     // Instruction to archieve the correct initialization
     hd44780_inst_function_set();
     hd44780_inst_display_clear(xNextWakeTime);
-    hd44780_inst_display_control(0, HD44780_CONFIG_C_CURSOR, HD44780_CONFIG_B_CURSOR_BLINK);
+    hd44780_inst_display_control(1, 1, 0);
     hd44780_inst_entry_mode_set(1,0);
-    hd44780_inst_return_home(xNextWakeTime);
-
-    // Configure to taste
-    hd44780_inst_entry_mode_set(1,0);
-    // Enable cursor and blink
-    hd44780_inst_cursor_display_shift(0, 1);
-    
-    hd44780_inst_return_home(xNextWakeTime);
-    hd44780_inst_set_ddram_address(0);
-    hd44780_inst_set_cgram_address(0);
-    hd44780_inst_display_control(1,1,1);
-    vTaskDelayUntil( xNextWakeTime, hd44780_INST_CLEAR_DISPLAY_MS );
 }
 
 // This only exists to confirm that the loop is never stuck
